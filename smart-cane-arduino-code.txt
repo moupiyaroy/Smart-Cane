@@ -1,0 +1,77 @@
+// Ultrasonic Blind Stick
+// Distance measurement and feedback system
+
+const int trigPin = 9;
+const int echoPin = 10;
+const int buzzerPin = 8;
+const int vibratorPin = 7;
+
+long duration;
+int distance;
+
+void setup() {
+  // Initialize pins
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(vibratorPin, OUTPUT);
+  
+  // Initialize serial communication for debugging
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Clear the trigger pin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  
+  // Send 10 microsecond pulse to trigger
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  // Read the echo pin and calculate duration
+  duration = pulseIn(echoPin, HIGH);
+  
+  // Calculate distance in centimeters
+  // Speed of sound is 340 m/s or 0.034 cm/µs
+  distance = duration * 0.034 / 2;
+  
+  // Display distance on serial monitor
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+  
+  // Provide feedback based on distance ranges
+  if (distance < 30) {
+    // Very close obstacle - continuous alert
+    tone(buzzerPin, 2000);
+    digitalWrite(vibratorPin, HIGH);
+  }
+  else if (distance < 60) {
+    // Medium distance - fast intermittent beeps
+    tone(buzzerPin, 1500);
+    delay(100);
+    noTone(buzzerPin);
+    digitalWrite(vibratorPin, HIGH);
+    delay(100);
+    digitalWrite(vibratorPin, LOW);
+  }
+  else if (distance < 100) {
+    // Far distance - slow intermittent beeps
+    tone(buzzerPin, 1000);
+    delay(200);
+    noTone(buzzerPin);
+    digitalWrite(vibratorPin, HIGH);
+    delay(200);
+    digitalWrite(vibratorPin, LOW);
+  }
+  else {
+    // No obstacle detected - silent mode
+    noTone(buzzerPin);
+    digitalWrite(vibratorPin, LOW);
+  }
+  
+  // Small delay before next measurement
+  delay(50);
+}
